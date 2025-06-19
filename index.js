@@ -14,19 +14,13 @@ app.use(cors(corsOptions));
 const { initializeDatabase } = require("./db/db.connect");
 const Lead = require("./models/lead.models");
 const SalesAgent = require("./models/salesAgent.models");
-// const Product = require("./models/product.models");
-// const Wishlist = require("./models/wishlist.models");
-// const Cart = require("./models/cart.models");
-// const Address = require("./models/address.models");
-// const User = require("./models/users.models");
 
 app.use(express.json());
 
 initializeDatabase();
 
-
 //Leads API's
-
+// create new lead
 async function createLead(newLead) {
   try {
     const lead = new Lead(newLead);
@@ -48,15 +42,15 @@ app.post("/leads", async (req, res) => {
         .json({ error: "Invalid input: 'name' is required." });
     }
     if (error.message.includes("Sales agent")) {
-      return res
-        .status(404)
-        .json({
-          error: "Sales agent with ID '64c34512f7a60e36df44' not found.",
-        });
+      return res.status(404).json({
+        error: "Sales agent with ID '64c34512f7a60e36df44' not found.",
+      });
     }
     res.status(500).json({ error: "Failed to add lead." });
   }
 });
+
+//fetch all leads
 
 async function readAllLeads() {
   try {
@@ -67,19 +61,67 @@ async function readAllLeads() {
   }
 }
 
-
 app.get("/leads", async (req, res) => {
   try {
     const leads = await readAllLeads();
-    if(leads.length != 0) {
+    if (leads.length != 0) {
       res.json(leads);
     } else {
-      res.status(404).json({error: "No Leads found."})
+      res.status(404).json({ error: "No Leads found." });
     }
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch leads." });
   }
+});
+
+// Fetch leads by sales agent
+
+async function getLeadsBySalesAgent(salesAgentId) {
+  try {
+    if (!ObjectId.isValid(salesAgentId)) {
+      throw new Error("Invalid salesAgent ID");
+    }
+    const leadsBySales = await Lead.find({ salesAgent: new ObjectId(salesAgentId) });
+    return leadsBySales;
+  } catch (error) {
+    throw error;
+  }
+}
+
+app.get("/leads/salesAgent/:id", async (req, res) => {
+  try {
+    const salesAgent = await getLeadsBySalesAgent(req.params.id);
+    if (salesAgent.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "No leads found for this sales agent" });
+    }
+    res.json(salesAgent);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// get leads from lead status
+
+async function getLeadsByStatus(statusName) {
+  try {
+    const leadStatus = await Lead.findOne({status: statusName})
+    return leadStatus;
+  } catch (error) {
+    throw error
+  }
+}
+
+app.get("/leads/status", async (req, res) => {
+  try {
+    const getStatusLead = await getLeadsByStatus(req.params.statusName);
+    res.json(getStatusLead)
+  } catch (error) {
+    res.status(400).json({error: "Invalid input: 'status' must be one of ['New', 'Contacted', 'Qualified', 'Proposal Sent', 'Closed']."})
+  }
 })
+
 //Sales Agents API's
 
 async function createSalesAgents(newAgent) {
@@ -88,32 +130,35 @@ async function createSalesAgents(newAgent) {
     const saveAgent = await agent.save();
     console.log("New Agent Data", saveAgent);
   } catch (error) {
-     throw error;
+    throw error;
   }
 }
-
 
 app.post("/agents", async (req, res) => {
   try {
     const savedAgents = await createSalesAgents(req.body);
-    res.status(201).json({message: "New Sales agent creates successfully", agent: savedAgents});   
+    res
+      .status(201)
+      .json({
+        message: "New Sales agent creates successfully",
+        agent: savedAgents,
+      });
   } catch (error) {
     if (error.message.includes("email must be a valid email address.")) {
       return res
         .status(400)
-        .json({ error: "Invalid input: 'email' must be a valid email address." });
+        .json({
+          error: "Invalid input: 'email' must be a valid email address.",
+        });
     }
     if (error.message.includes("Sales agent")) {
-      return res
-        .status(409)
-        .json({
-          error: "Sales agent with email 'john@example.com' already exists.",
-        });
+      return res.status(409).json({
+        error: "Sales agent with email 'john@example.com' already exists.",
+      });
     }
     res.status(500).json({ error: "Failed to add Sales agent." });
   }
 });
-
 
 // // readAllProducts();
 
