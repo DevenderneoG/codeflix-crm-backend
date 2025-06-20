@@ -107,20 +107,27 @@ app.get("/leads/salesAgent/:id", async (req, res) => {
 async function getLeadsByStatus(statusName) {
   try {
     const leadStatus = await Lead.findOne({status: statusName})
+    console.log(leadStatus, "leadStatus")
     return leadStatus;
   } catch (error) {
     throw error
   }
 }
 
-app.get("/leads/status", async (req, res) => {
+app.get("/leads/status/:statusname", async (req, res) => {
   try {
-    const getStatusLead = await getLeadsByStatus(req.params.statusName);
-    res.json(getStatusLead)
-  } catch (error) {
+    const getStatusLead = await getLeadsByStatus(req.params.statusname);
+    console.log(getStatusLead, "getStatusLead")
+    if(getStatusLead != 0) {
+      res.json(getStatusLead)
+    } else {
     res.status(400).json({error: "Invalid input: 'status' must be one of ['New', 'Contacted', 'Qualified', 'Proposal Sent', 'Closed']."})
+    }
+  } catch (error) {
+   res.status(500).json({ error: "Failed to fetch lead from status." });
   }
 })
+
 
 //Sales Agents API's
 
