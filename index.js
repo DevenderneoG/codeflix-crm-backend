@@ -167,7 +167,30 @@ app.post("/agents", async (req, res) => {
   }
 });
 
-// // readAllProducts();
+async function readAllAgents() {
+  try {
+    const getAgents = await SalesAgent.find();
+    return getAgents;
+  } catch (error) {
+    throw error;
+  }
+}
+
+app.get("/agents", async(req, res) => {
+  try {
+    const agents = await readAllAgents();
+    if(agents.length != 0) {
+      res.json(agents);
+    } else {
+      res.status(404).json({error: "No Agents found."});
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch Agents." });
+  }
+})
+
+
+// readAllProducts();
 
 // async function readProductById(productId) {
 //   try {
