@@ -74,6 +74,30 @@ app.get("/leads", async (req, res) => {
   }
 });
 
+// Fetch leads by id
+
+async function getLeadsById(leadId) {
+  try {   
+    const leadById = await Lead.findById(leadId);
+    return leadById;
+  } catch (error) {
+    throw error;
+  }
+}
+
+app.get("/leads/:leadId", async (req, res) => {
+  try {
+    const getLeadById = await getLeadsById(req.params.leadId);
+    if (getLeadById) {
+      res.json(getLeadById);
+    } else {
+      res.status(404).json({ error: "No lead found." });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch lead." });
+  }
+});
+
 // Fetch leads by sales agent
 
 async function getLeadsBySalesAgent(salesAgentId) {
@@ -125,6 +149,105 @@ app.get("/leads/status/:statusname", async (req, res) => {
     }
   } catch (error) {
    res.status(500).json({ error: "Failed to fetch lead from status." });
+  }
+})
+
+// get leads from lead tag
+
+async function getLeadsByTag(tagName) {
+  try {
+    const leadTag = await Lead.find({ tags: tagName });
+    return leadTag;
+  } catch (error) {
+    throw error;
+  }
+}
+
+app.get("/leads/tags/:tagname", async (req, res) => {
+  try {
+    const getTagLead = await getLeadsByTag(req.params.tagname);
+    if (getTagLead.length > 0) {
+      res.json(getTagLead);
+    } else {
+      res.status(404).json({ error: "No leads found with this tag." });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch leads by tag." });
+  }
+})
+
+
+// get leads from lead source
+
+async function getLeadsBySource(sourceName) {
+  try {
+    const leadSource = await Lead.find({ source: sourceName });
+    console.log(leadSource, "leadSource")
+    return leadSource;
+  } catch (error) {
+    throw error;
+  }
+}
+
+app.get("/leads/source/:sourcename", async (req, res) => {
+  try {
+    const getSourceLead = await getLeadsBySource(req.params.sourcename);
+    if (getSourceLead.length > 0) {
+      res.json(getSourceLead);
+    } else {
+      res.status(404).json({ error: "No leads found with this source." });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch leads by source." });
+  }
+})
+
+
+// Update lead by ID
+
+async function updateLeadById(leadId, updateData) {
+  try {
+  const updatedLead = await Lead.findByIdAndUpdate(leadId, updateData, { new: true })
+  return updatedLead;
+} catch (error) {
+  console.log("Error in updating lead data", error);
+}
+}
+
+app.put("/leads/:leadId", async (req, res) => {
+  try {
+    const leadUpdatedById = await updateLeadById(req.params.leadId, req.body);
+    if(leadUpdatedById) {
+      res.status(200).json({message: "Lead updated successfully.", leadUpdatedById: leadUpdatedById});
+    } else {
+      res.status(404).json({message: "Lead not found."});
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update Hotel." });
+  }
+})
+
+// Delete lead by id
+
+async function deleteLeadById(leadId) {
+  try {
+    const deletedLead = await Lead.findByIdAndDelete(leadId);
+    console.log(deletedLead, "deletedLead");
+  } catch (error) {
+    console.log("Error in Deleting lead data", error)
+  }
+ }
+
+app.delete("/leads/:leadId", async (req, res) => {
+  try {
+    const deletedLead = await deleteLeadById(req.params.leadId);
+    if (deletedLead) {
+      res.status(200).json({ message: "Lead deleted successfully." });
+    } else {
+      res.status(404).json({ error: "Lead with ID '64c34512f7a60e36df44' not found." });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete lead." });
   }
 })
 
