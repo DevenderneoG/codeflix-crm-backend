@@ -130,7 +130,7 @@ app.get("/leads/salesAgent/:id", async (req, res) => {
 
 async function getLeadsByStatus(statusName) {
   try {
-    const leadStatus = await Lead.findOne({status: statusName})
+    const leadStatus = await Lead.find({status: statusName})
     console.log(leadStatus, "leadStatus")
     return leadStatus;
   } catch (error) {
