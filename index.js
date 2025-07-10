@@ -230,27 +230,31 @@ app.put("/leads/:leadId", async (req, res) => {
 
 // Delete lead by id
 
-async function deleteLeadById(leadId) {
+ async function deleteLeadById(leadId) {
   try {
     const deletedLead = await Lead.findByIdAndDelete(leadId);
-    console.log(deletedLead, "deletedLead");
+    return deletedLead; // ✅ return it!
   } catch (error) {
-    console.log("Error in Deleting lead data", error)
+    throw error; // ✅ rethrow so the route handler can catch
   }
- }
+}
+
 
 app.delete("/leads/:leadId", async (req, res) => {
   try {
     const deletedLead = await deleteLeadById(req.params.leadId);
+
     if (deletedLead) {
       res.status(200).json({ message: "Lead deleted successfully." });
     } else {
-      res.status(404).json({ error: "Lead with ID '64c34512f7a60e36df44' not found." });
+      res.status(404).json({ error: `Lead with ID '${req.params.leadId}' not found.` });
     }
   } catch (error) {
     res.status(500).json({ error: "Failed to delete lead." });
   }
-})
+});
+
+
 
 
 //Sales Agents API's
